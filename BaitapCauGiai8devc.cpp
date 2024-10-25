@@ -11,7 +11,7 @@ struct Ngay {
 struct SinhVien {
     char maSV[8];       // Ma sinh vien
     char hoTen[50];     // Ho ten
-    int  gioiTinh;      // Gioi tinh
+    int gioiTinh;       // Gioi tinh
     Ngay ngaySinh;      // Ngay thang nam sinh
     char diaChi[100];   // Dia chi
     char lop[12];       // Lop
@@ -20,53 +20,53 @@ struct SinhVien {
 
 // Khai bao cau truc cho mot node trong danh sach lien ket don
 struct Node {
-    SinhVien data; // Du lieu cua sinh vien
-    Node *link;    // Con tro den node tiep theo trong danh sach
+    SinhVien duLieu; // Du lieu cua sinh vien
+    Node *lienKet;   // Con tro den node tiep theo trong danh sach
 };
 
 // Khai bao cau truc danh sach lien ket
-struct List {
-    Node *first;
-    Node *last;
+struct DanhSach {
+    Node *dau;
+    Node *cuoi;
 };
 
 // Ham khoi tao danh sach lien ket rong
-void initList(List &list) {
-    list.first = NULL;
-    list.last = NULL;
+void khoiTaoDanhSach(DanhSach &danhSach) {
+    danhSach.dau = NULL;
+    danhSach.cuoi = NULL;
 }
 
 // Ham tao node sinh vien moi
-Node* createNode(SinhVien sv) {
-    Node* newNode = new Node;
-    newNode->data = sv;
-    newNode->link = NULL;
-    return newNode;
+Node* taoNode(SinhVien sv) {
+    Node* nodeMoi = new Node;
+    nodeMoi->duLieu = sv;
+    nodeMoi->lienKet = NULL;
+    return nodeMoi;
 }
 
 // Ham them sinh vien vao danh sach theo thu tu ma sinh vien
-void addStudentSorted(List &list, SinhVien sv) {
-    Node* newNode = createNode(sv);
+void themSinhVienTheoThuTu(DanhSach &danhSach, SinhVien sv) {
+    Node* nodeMoi = taoNode(sv);
 
     // Neu danh sach rong hoac sinh vien moi co ma nho hon ma sinh vien dau tien
-    if (list.first == NULL || strcmp(newNode->data.maSV, list.first->data.maSV) < 0) {
-        newNode->link = list.first;
-        list.first = newNode;
-        if (list.last == NULL) {
-            list.last = newNode;
+    if (danhSach.dau == NULL || strcmp(nodeMoi->duLieu.maSV, danhSach.dau->duLieu.maSV) < 0) {
+        nodeMoi->lienKet = danhSach.dau;
+        danhSach.dau = nodeMoi;
+        if (danhSach.cuoi == NULL) {
+            danhSach.cuoi = nodeMoi;
         }
     } else {
         // Tim vi tri chen
-        Node* prev = list.first;
-        Node* curr = list.first->link;
-        while (curr != NULL && strcmp(curr->data.maSV, newNode->data.maSV) < 0) {
-            prev = curr;
-            curr = curr->link;
+        Node* truoc = danhSach.dau;
+        Node* hienTai = danhSach.dau->lienKet;
+        while (hienTai != NULL && strcmp(hienTai->duLieu.maSV, nodeMoi->duLieu.maSV) < 0) {
+            truoc = hienTai;
+            hienTai = hienTai->lienKet;
         }
-        newNode->link = curr;
-        prev->link = newNode;
-        if (curr == NULL) {
-            list.last = newNode;
+        nodeMoi->lienKet = hienTai;
+        truoc->lienKet = nodeMoi;
+        if (hienTai == NULL) {
+            danhSach.cuoi = nodeMoi;
         }
     }
 }
@@ -94,51 +94,51 @@ SinhVien nhapSinhVien() {
 }
 
 // Ham hien thi danh sach sinh vien
-void displayStudents(const List &list) {
-    Node* temp = list.first;
-    if (temp == NULL) {
+void hienThiDanhSach(const DanhSach &danhSach) {
+    Node* tam = danhSach.dau;
+    if (tam == NULL) {
         cout << "Danh sach sinh vien trong." << endl;
         return;
     }
-    while (temp != NULL) {
-        cout << "Ma SV: " << temp->data.maSV << endl;
-        cout << "Ho Ten: " << temp->data.hoTen << endl;
-        cout << "Gioi Tinh: " << (temp->data.gioiTinh == 0 ? "Nam" : "Nu") << endl;
-        cout << "Ngay Sinh: " << temp->data.ngaySinh.ngay << "/" << temp->data.ngaySinh.thang << "/" << temp->data.ngaySinh.nam << endl;
-        cout << "Dia Chi: " << temp->data.diaChi << endl;
-        cout << "Lop: " << temp->data.lop << endl;
-        cout << "Khoa: " << temp->data.khoa << endl;
+    while (tam != NULL) {
+        cout << "Ma SV: " << tam->duLieu.maSV << endl;
+        cout << "Ho Ten: " << tam->duLieu.hoTen << endl;
+        cout << "Gioi Tinh: " << (tam->duLieu.gioiTinh == 0 ? "Nam" : "Nu") << endl;
+        cout << "Ngay Sinh: " << tam->duLieu.ngaySinh.ngay << "/" << tam->duLieu.ngaySinh.thang << "/" << tam->duLieu.ngaySinh.nam << endl;
+        cout << "Dia Chi: " << tam->duLieu.diaChi << endl;
+        cout << "Lop: " << tam->duLieu.lop << endl;
+        cout << "Khoa: " << tam->duLieu.khoa << endl;
         cout << "--------------------------" << endl;
-        temp = temp->link;
+        tam = tam->lienKet;
     }
 }
 
 // Ham loai bo cac sinh vien co cung ngay sinh
-void loaiBoSinhVienCungNgaySinh(List &list, const Ngay &ngay) {
-    Node *prev = NULL, *curr = list.first;
-    bool found = false;
+void loaiBoSinhVienCungNgaySinh(DanhSach &danhSach, const Ngay &ngay) {
+    Node *truoc = NULL, *hienTai = danhSach.dau;
+    bool timThay = false;
 
-    while (curr != NULL) {
+    while (hienTai != NULL) {
         // Kiem tra ngay sinh
-        if (curr->data.ngaySinh.ngay == ngay.ngay &&
-            curr->data.ngaySinh.thang == ngay.thang &&
-            curr->data.ngaySinh.nam == ngay.nam) {
-            found = true;
-            Node* temp = curr;
-            if (prev == NULL) { // Neu la node dau tien
-                list.first = curr->link;
+        if (hienTai->duLieu.ngaySinh.ngay == ngay.ngay &&
+            hienTai->duLieu.ngaySinh.thang == ngay.thang &&
+            hienTai->duLieu.ngaySinh.nam == ngay.nam) {
+            timThay = true;
+            Node* tam = hienTai;
+            if (truoc == NULL) { // Neu la node dau tien
+                danhSach.dau = hienTai->lienKet;
             } else {
-                prev->link = curr->link;
+                truoc->lienKet = hienTai->lienKet;
             }
-            curr = curr->link;
-            delete temp; // Xoa node khoi bo nho
+            hienTai = hienTai->lienKet;
+            delete tam; // Xoa node khoi bo nho
         } else {
-            prev = curr;
-            curr = curr->link;
+            truoc = hienTai;
+            hienTai = hienTai->lienKet;
         }
     }
 
-    if (!found) {
+    if (!timThay) {
         cout << "Khong tim thay sinh vien cung ngay sinh de loai bo." << endl;
     } else {
         cout << "Da loai bo cac sinh vien co cung ngay sinh." << endl;
@@ -146,22 +146,22 @@ void loaiBoSinhVienCungNgaySinh(List &list, const Ngay &ngay) {
 }
 
 int main() {
-    List list;
-    initList(list);
+    DanhSach danhSach;
+    khoiTaoDanhSach(danhSach);
 
     // Nhap va them sinh vien vao danh sach
-    int n;
+    int soLuong;
     cout << "Nhap so luong sinh vien: ";
-    cin >> n;
-    for (int i = 0; i < n; i++) {
+    cin >> soLuong;
+    for (int i = 0; i < soLuong; i++) {
         cout << "\nNhap thong tin sinh vien thu " << i + 1 << ":" << endl;
         SinhVien sv = nhapSinhVien();
-        addStudentSorted(list, sv);
+        themSinhVienTheoThuTu(danhSach, sv);
     }
 
     // Hien thi danh sach sinh vien
     cout << "\nDanh sach sinh vien sap xep tang dan theo ma sinh vien:" << endl;
-    displayStudents(list);
+    hienThiDanhSach(danhSach);
 
     // Nhap ngay sinh de loai bo sinh vien
     Ngay ngay;
@@ -169,11 +169,11 @@ int main() {
     cin >> ngay.ngay >> ngay.thang >> ngay.nam;
 
     // Loai bo sinh vien co cung ngay sinh
-    loaiBoSinhVienCungNgaySinh(list, ngay);
+    loaiBoSinhVienCungNgaySinh(danhSach, ngay);
 
     // Hien thi danh sach sinh vien sau khi loai bo
     cout << "\nDanh sach sinh vien sau khi loai bo:" << endl;
-    displayStudents(list);
+    hienThiDanhSach(danhSach);
 
     return 0;
 }
